@@ -32,5 +32,5 @@ python client/client.py
 ```
 
 ## Autores
-[Marcos Barros](https://github.com/MarcosBB)
-[Gdiael Barros](https://github.com/gdiael)
+- [Marcos Barros](https://github.com/MarcosBB)
+- [Gdiael Barros](https://github.com/gdiael)
