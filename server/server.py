@@ -7,5 +7,7 @@ daemon = Pyro4.Daemon()
 ns = Pyro4.locateNS()
 ns.register("JogoDaVelha", daemon.register(JogoDaVelha))
 ns.register("Player", daemon.register(Player))
-
+print()
+print("Server is running...")
+print()
 daemon.requestLoop()
