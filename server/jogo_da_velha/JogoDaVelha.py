@@ -130,12 +130,17 @@ class JogoDaVelha:
         return game_id
     
     def match_making(self, player_id):
-        self.cursor.execute("SELECT * FROM game WHERE player2 IS NULL AND finished = 0")
-
+        self.cursor.execute(
+            "SELECT * FROM game WHERE (player1 = ? OR player2 = ?) AND finished = 0", 
+            (player_id, player_id,)
+        )
         game_data = self.cursor.fetchone()
-        if game_data and game_data[1] == player_id:
+        if game_data:
             return game_data[0]
-        elif game_data:
+        
+        self.cursor.execute("SELECT * FROM game WHERE player2 IS NULL AND finished = 0")
+        game_data = self.cursor.fetchone()
+        if game_data:
             return self.join_game(player_id, game_data[0])
         else:
             return self.create_game(player_id)
