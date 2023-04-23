@@ -52,6 +52,8 @@ class Player:
 
     def get_symbol(self):
         return self.symbol
+
+
 @Pyro4.expose
 class JogoDaVelha:
     def __init__(self):
@@ -60,6 +62,7 @@ class JogoDaVelha:
         self.player1 = None
         self.player2 = None
         self.current_player = None
+        self.finished = False
 
         self.database = sqlite3.connect('database.db')
         self.cursor = self.database.cursor()
@@ -69,7 +72,8 @@ class JogoDaVelha:
             player2 INTEGER REFERENCES player(id),
             winner INTEGER REFERENCES player(id),
             current_player INTEGER REFERENCES player(id),
-            board ARRAY NOT NULL
+            board ARRAY NOT NULL,
+            finished BOOLEAN DEFAULT FALSE
         )''')
         self.database.commit()
 
@@ -82,6 +86,7 @@ class JogoDaVelha:
         self.winner = game_data[3]
         self.current_player = game_data[4]
         self.board = json.loads(game_data[5])
+        self.finished = game_data[6]
 
     def get_game_data(self):
         return {
@@ -90,7 +95,8 @@ class JogoDaVelha:
             'player2': self.player2,
             'board': self.board,
             'current_player': self.current_player,
-            'winner': self.winner
+            'winner': self.winner,
+            'finished': self.finished
         }   
 
     def create_game(self, player1_id):
@@ -100,7 +106,11 @@ class JogoDaVelha:
             (player1_id, board_str))
         self.database.commit()
 
-        self.cursor.execute("SELECT id FROM game WHERE player1=?", (player1_id,))
+        self.cursor.execute(
+            "SELECT id FROM game WHERE player1=? ORDER BY id DESC LIMIT 1", 
+            (player1_id,)
+        )
+
         game_data = self.cursor.fetchone()
         return game_data[0]
     
@@ -120,25 +130,27 @@ class JogoDaVelha:
         return game_id
     
     def match_making(self, player_id):
-        """TODO: Melhorar a lógica de matchmaking
-        - retomar partidas inacabadas
-        - sair da partida (excluir do banco de dados)
-        
-        """
-        self.cursor.execute("SELECT * FROM game WHERE player2 IS NULL AND player1 != ?", (player_id,))
-        
+        self.cursor.execute("SELECT * FROM game WHERE player2 IS NULL AND finished = 0")
+
         game_data = self.cursor.fetchone()
-        if game_data:
+        if game_data and game_data[1] == player_id:
+            return game_data[0]
+        elif game_data:
             return self.join_game(player_id, game_data[0])
         else:
             return self.create_game(player_id)
 
     def check_win(self):
         def set_winner(symbol):
-            if self.player1.symbol == symbol:
-                winner = self.player1.id
+            player1 = Player()
+            player1.load_player(self.player1)
+            player2 = Player()
+            player2.load_player(self.player2)
+
+            if player1.symbol == symbol:
+                winner = player1.id
             else:
-                winner = self.player2.id
+                winner = player2.id
             self.cursor.execute("UPDATE game SET winner = ? WHERE id = ?", (winner, self.id))
             self.database.commit()
             return winner
@@ -165,8 +177,12 @@ class JogoDaVelha:
     def do_move(self, position, player_id):
         player = Player()
         player.load_player(player_id)
-        if self.board[position] == '-' and self.current_player == player_id:
-            
+
+        if (
+            position in range(9) and
+            self.board[position] == '-' and 
+            self.current_player == player_id
+        ):
             self.board[position] = player.symbol
             self.cursor.execute("UPDATE game SET board = ? WHERE id = ?", (json.dumps(self.board), self.id))
             self.database.commit()
@@ -174,3 +190,7 @@ class JogoDaVelha:
             return True
         else:
             return False
+
+    def exit_game(self):
+        self.cursor.execute("UPDATE game SET finished = True WHERE id = ?", (self.id,))
+        self.database.commit()
