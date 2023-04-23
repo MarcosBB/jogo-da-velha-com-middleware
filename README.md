@@ -30,3 +30,7 @@ Para cada novo jogador você deve abrir o client em um terminal diferente, caso 
 ```bash
 python client/client.py 
 ```
+
+## Autores
+[Marcos Barros](https://github.com/MarcosBB)
+[Gdiael Barros](https://github.com/gdiael)
