@@ -8,4 +8,5 @@ ns = Pyro4.locateNS()
 ns.register("JogoDaVelha", daemon.register(JogoDaVelha))
 ns.register("Player", daemon.register(Player))
 
+print("Server is running...")
 daemon.requestLoop()

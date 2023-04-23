@@ -17,7 +17,7 @@ class Player:
                 name TEXT NOT NULL
             )
         ''')
-        self.database.commit()        
+        self.database.commit()
 
     def login(self, name):
         self.cursor.execute("SELECT * FROM player WHERE name=?", (name,))
@@ -34,17 +34,17 @@ class Player:
 
         self.database.commit()
 
-    def find_game(self):
-        game = JogoDaVelha()
-        game.match_making(self)
-        return game
 
     def get_name(self):
         return self.name
+    
+    def get_id(self):
+        return self.id
 
 @Pyro4.expose
 class JogoDaVelha:
     def __init__(self):
+        self.id = None
         self.board = None
         self.player1 = None
         self.player2 = None
@@ -62,35 +62,49 @@ class JogoDaVelha:
         )''')
         self.database.commit()
 
-    def create_game(self, player1):
-        self.player1 = player1
-        self.board = ['-'] * 9
-        board_str = json.dumps(self.board)
+    def load_game(self, game_id=None):
+        self.id = game_id if game_id else self.id
+        self.cursor.execute("SELECT * FROM game WHERE id=?", (self.id,))
+        game_data = self.cursor.fetchone()
+        self.player1 = game_data[1]
+        self.player2 = game_data[2]
+        self.current_player = game_data[4]
+        self.board = json.loads(game_data[5])
+
+    def get_game_data(self):
+        return {
+            'id': self.id,
+            'player1': self.player1,
+            'player2': self.player2,
+            'board': self.board,
+            'current_player': self.current_player,
+        }   
+
+    def create_game(self, player1_id):
+        board_str = json.dumps(['-'] * 9)
         self.cursor.execute(
             "INSERT INTO game (player1, board) VALUES (?, ?)", 
-            (self.player1.id, board_str))
+            (player1_id, board_str))
         self.database.commit()
-        print("Jogo criado")
 
-    def join_game(self, player2, game_id):
-        self.cursor.execute("UPDATE game SET player2 = ? WHERE id = ?", (player2.id, game_id))
-        
-        self.cursor.execute("SELECT * FROM game WHERE id=?", (game_id,))
+        self.cursor.execute("SELECT id FROM game WHERE player1=?", (player1_id,))
         game_data = self.cursor.fetchone()
-        
-        self.player1 = game_data[1]
-        self.player2 = player2
-        self.board = game_data[4]
-        self.current_player = game_data[5]
-        self.database.commit()
+        return game_data[0]
     
-    def match_making(self, player):
-        self.cursor.execute("SELECT * FROM game WHERE player2 IS NULL AND player1 != ?", (player.id,))
-
+    def join_game(self, player2_id, game_id):
+        self.cursor.execute("UPDATE game SET player2 = ? WHERE id = ?", (player2_id, game_id))
+        self.database.commit()
+        
+        self.cursor.execute("SELECT id FROM game WHERE id=?", (game_id,))
+        game_data = self.cursor.fetchone()
+        return game_data[0]
+    
+    def match_making(self, player_id):
+        self.cursor.execute("SELECT * FROM game WHERE player2 IS NULL AND player1 != ?", (player_id,))
+        
         game_data = self.cursor.fetchone()
         if game_data:
-            self.join_game(player, game_data[0])
+            return self.join_game(player_id, game_data[0])
         else:
-            self.create_game(player)
-        return self
+            return self.create_game(player_id)
 
