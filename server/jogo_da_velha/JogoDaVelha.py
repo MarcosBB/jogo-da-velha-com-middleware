@@ -135,10 +135,15 @@ class JogoDaVelha:
 
     def check_win(self):
         def set_winner(symbol):
-            if self.player1.symbol == symbol:
-                winner = self.player1.id
+            player1 = Player()
+            player1.load_player(self.player1)
+            player2 = Player()
+            player2.load_player(self.player2)
+
+            if player1.symbol == symbol:
+                winner = player1.id
             else:
-                winner = self.player2.id
+                winner = player2.id
             self.cursor.execute("UPDATE game SET winner = ? WHERE id = ?", (winner, self.id))
             self.database.commit()
             return winner
@@ -165,8 +170,12 @@ class JogoDaVelha:
     def do_move(self, position, player_id):
         player = Player()
         player.load_player(player_id)
-        if self.board[position] == '-' and self.current_player == player_id:
-            
+                
+        if (
+            position in range(9) and
+            self.board[position] == '-' and 
+            self.current_player == player_id
+        ):
             self.board[position] = player.symbol
             self.cursor.execute("UPDATE game SET board = ? WHERE id = ?", (json.dumps(self.board), self.id))
             self.database.commit()
