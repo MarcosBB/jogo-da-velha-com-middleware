@@ -38,12 +38,19 @@ while True:
     if game_data["winner"]:
         break
 
+    if game_data["finished"]:
+        break
+
     if game_data["current_player"] == player.get_id():
         print("É a sua vez!")
         position = int(input("Insira a posição que deseja jogar:"))
 
         done = False
         while not done:
+            if position == int(-1):
+                game.exit_game()
+                break
+
             done = game.do_move(position, player.get_id())
             if not done:
                 print("Posição inválida, tente novamente!")
@@ -62,5 +69,11 @@ print(game_data["board"][6] + "|" + game_data["board"][7] + "|" + game_data["boa
 
 if game_data["winner"] == player.get_id():
     print("You won!")
+
+if game_data["finished"] and not game_data["winner"]:
+    print("Game finished!")
+
 else:
     print("You lost!")
+
+game.exit_game()

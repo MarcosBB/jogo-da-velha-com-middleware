@@ -52,6 +52,8 @@ class Player:
 
     def get_symbol(self):
         return self.symbol
+
+
 @Pyro4.expose
 class JogoDaVelha:
     def __init__(self):
@@ -60,6 +62,7 @@ class JogoDaVelha:
         self.player1 = None
         self.player2 = None
         self.current_player = None
+        self.finished = False
 
         self.database = sqlite3.connect('database.db')
         self.cursor = self.database.cursor()
@@ -69,7 +72,8 @@ class JogoDaVelha:
             player2 INTEGER REFERENCES player(id),
             winner INTEGER REFERENCES player(id),
             current_player INTEGER REFERENCES player(id),
-            board ARRAY NOT NULL
+            board ARRAY NOT NULL,
+            finished BOOLEAN DEFAULT FALSE
         )''')
         self.database.commit()
 
@@ -82,6 +86,7 @@ class JogoDaVelha:
         self.winner = game_data[3]
         self.current_player = game_data[4]
         self.board = json.loads(game_data[5])
+        self.finished = game_data[6]
 
     def get_game_data(self):
         return {
@@ -90,7 +95,8 @@ class JogoDaVelha:
             'player2': self.player2,
             'board': self.board,
             'current_player': self.current_player,
-            'winner': self.winner
+            'winner': self.winner,
+            'finished': self.finished
         }   
 
     def create_game(self, player1_id):
@@ -170,7 +176,7 @@ class JogoDaVelha:
     def do_move(self, position, player_id):
         player = Player()
         player.load_player(player_id)
-                
+
         if (
             position in range(9) and
             self.board[position] == '-' and 
@@ -183,3 +189,7 @@ class JogoDaVelha:
             return True
         else:
             return False
+
+    def exit_game(self):
+        self.cursor.execute("UPDATE game SET finished = True WHERE id = ?", (self.id,))
+        self.database.commit()
