@@ -106,7 +106,11 @@ class JogoDaVelha:
             (player1_id, board_str))
         self.database.commit()
 
-        self.cursor.execute("SELECT id FROM game WHERE player1=?", (player1_id,))
+        self.cursor.execute(
+            "SELECT id FROM game WHERE player1=? ORDER BY id DESC LIMIT 1", 
+            (player1_id,)
+        )
+
         game_data = self.cursor.fetchone()
         return game_data[0]
     
@@ -126,15 +130,12 @@ class JogoDaVelha:
         return game_id
     
     def match_making(self, player_id):
-        """TODO: Melhorar a lógica de matchmaking
-        - retomar partidas inacabadas
-        - sair da partida (excluir do banco de dados)
-        
-        """
-        self.cursor.execute("SELECT * FROM game WHERE player2 IS NULL AND player1 != ?", (player_id,))
-        
+        self.cursor.execute("SELECT * FROM game WHERE player2 IS NULL AND finished = 0")
+
         game_data = self.cursor.fetchone()
-        if game_data:
+        if game_data and game_data[1] == player_id:
+            return game_data[0]
+        elif game_data:
             return self.join_game(player_id, game_data[0])
         else:
             return self.create_game(player_id)
