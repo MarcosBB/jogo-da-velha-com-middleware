@@ -104,7 +104,7 @@ def wait_mouse_input() :
                 line = mouse_pos[1] * 3 // BOARD_HEIGHT
                 col = mouse_pos[0] * 3 // BOARD_WIDTH
                 if line > -1 and line < 3 and col > -1 and col < 3 :
-                    return InputStatus.Ended, (line, col) # usuário clicou numa posição válida
+                    return InputStatus.Ended, line*3 + col # usuário clicou numa posição válida
 
 def start_player() :
     # trecho 01 inicializando a conexão
@@ -135,13 +135,11 @@ def start_player() :
     # trecho 05 aguardando adversário
     message_ln1 = f"Olá, {user_name}! O jogo já vai começar!"
     message_ln2 = "Estamos procurando um adversário!"
-    player2 = ""
     while True :
         redraw_window(win, board, message_ln1, message_ln2)
         game.load_game(game_id)
         game_data = game.get_game_data()
         if game_data["player2"]:
-            player2 = game_data["player2"]
             break
         else:
             time.sleep(1)
@@ -156,8 +154,7 @@ def start_player() :
         if game_data["finished"] : break
 
         if game_data["current_player"] == player.get_id():
-            message_ln2 = f"[{user_name}] vs. [{player2}]"
-            message_ln1 = f"É a sua vez! Clique em uma casa e insira um '{player.symbol}'"
+            message_ln1 = f"É a sua vez! Clique em uma casa e insira um '{player.get_symbol()}'"
             redraw_window(win, game_data["board"], message_ln1, message_ln2)
             status, position = wait_mouse_input()
             match status :
@@ -168,8 +165,9 @@ def start_player() :
                     done = game.do_move(position, player.get_id())
                     if not done :
                         redraw_window(win, game_data["board"], message_ln1, "Posição inválida, tente novamente!")
+                        time.sleep(1)
         else :
-            message_ln2 = f"[{user_name}] vs. [{player2}]"
+            message_ln2 = " "
             message_ln1 = "É a vez do seu openente, aguarde um pouco!"
             redraw_window(win, game_data["board"], message_ln1, message_ln2)
             time.sleep(1)
@@ -184,4 +182,8 @@ def start_player() :
         message_ln2 = "Você perdeu!"
     redraw_window(win, game_data["board"], message_ln1, message_ln2)
 
-start_player()
+    time.sleep(2)
+    for i in range(3):
+        message_ln1 = f"Encerrando jogo em {3 - i}"
+        redraw_window(win, game_data["board"], message_ln1, message_ln2)
+        time.sleep(1)

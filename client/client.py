@@ -67,13 +67,15 @@ print(game_data["board"][0] + "|" + game_data["board"][1] + "|" + game_data["boa
 print(game_data["board"][3] + "|" + game_data["board"][4] + "|" + game_data["board"][5])
 print(game_data["board"][6] + "|" + game_data["board"][7] + "|" + game_data["board"][8])
 
-if game_data["winner"] == player.get_id():
-    print("You won!")
-
-if game_data["finished"] and not game_data["winner"]:
-    print("Game finished!")
-
+if game_data["winner"] is not None:
+    if game_data["winner"] == player.get_id():
+        print("You won!")
+    else:
+        print("You lost!")
 else:
-    print("You lost!")
+    if game_data["finished"] and not game_data["winner"]:
+        print("Game finished!")
+
+
 
 game.exit_game()
