@@ -1,6 +1,6 @@
 # Jogo da velha com middleware
 Trata-se de um projeto de jogo da velha usando middleware em que dois jogadores conseguem jogar "online" o famoso jogo da velha.
-O projeto usa a tecnologia `RPC` com a biblioteca `pyro4` do python para gerar seu middleware. Foram criados 2 tipos de clientes: Um cliente com interface gráfica usando a biblioteca `pygame` e um cliente pelo terminal.
+O projeto usa a tecnologia `RPC` com a biblioteca `pyro4` do python para gerar seu middleware. Foram criados 2 tipos de clientes: Um cliente com interface gráfica usando a biblioteca `pygame` e um cliente pelo terminal. Os dados são persistidos no middleware com o banco de dados `SQLite`.
 
 ![image](https://user-images.githubusercontent.com/50207805/233893489-0825745e-1de6-49f6-9870-7d636d7fa563.png)
 
