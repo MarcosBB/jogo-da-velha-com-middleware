@@ -8,7 +8,7 @@ O projeto usa a tecnologia `RPC` com a biblioteca `pyro4` do python para gerar s
 
 ## Rodando
 ### Requisitos
-1. é necessário um SO Linux ou um WSL no windows para rodar a aplicação
+1. é necessário um SO Linux para rodar a aplicação
 2. instale a versão `3.10.8` do python na sua máquina para evitar incompatibilidades
 3. instale os requisitos do projeto rodando o seguinte comando:
 ```bash
