@@ -187,3 +187,5 @@ def start_player() :
         message_ln1 = f"Encerrando jogo em {3 - i}"
         redraw_window(win, game_data["board"], message_ln1, message_ln2)
         time.sleep(1)
+
+start_player()
